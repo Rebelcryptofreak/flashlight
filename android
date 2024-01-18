@@ -1,0 +1,63 @@
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private Camera camera;
+    private Button toggleButton;
+    private boolean isFlashlightOn;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        toggleButton = findViewById(R.id.toggle_button);
+
+        boolean isFlashAvailable = getApplicationContext().getPackageManager()
+                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
+        if (!isFlashAvailable) {
+            showNoFlashError();
+        }
+
+        camera = Camera.open();
+        final Parameters p = camera.getParameters();
+
+        toggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isFlashlightOn) {
+                    p.setFlashMode(Parameters.FLASH_MODE_OFF);
+                    camera.setParameters(p);
+                    camera.stopPreview();
+                    isFlashlightOn = false;
+                } else {
+                    p.setFlashMode(Parameters.FLASH_MODE_TORCH);
+                    camera.setParameters(p);
+                    camera.startPreview();
+                    isFlashlightOn = true;
+                }
+            }
+        });
+    }
+
+    private void showNoFlashError() {
+        // Handle the case where the device doesn't support flash
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (camera != null) {
+            camera.release();
+            camera = null;
+        }
+    }
+}
